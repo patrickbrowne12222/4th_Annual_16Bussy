@@ -22,7 +22,7 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#1c2318;color:#f5
 <script type="text/babel" data-type="module">
 const {useState, useEffect, useCallback} = React;
 
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxa295dev35tcbIOEleeFSriBeAsW983PiK90kn2BBmvmziwgAqwecfPfj3qQD40KZUGw/exec";
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycby5buK5L2kHxwZuxMs6aQ6oKpBk9SlVtGjMOQvKYfS_XfVvcHrdNhA3OOa3AQy3YH5j7w/exec";
 async function fetchRoster() { if (!SHEETS_URL) return []; try { const r = await fetch(SHEETS_URL); const d = await r.json(); return d.participants || []; } catch { return []; } }
 async function saveToSheet(action, participant) { if (!SHEETS_URL) return false; try { await fetch(SHEETS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action, participant }) }); return true; } catch { return false; } }
 const EVENT_DATE = new Date("2026-10-08T14:00:00-04:00");
