@@ -24,7 +24,7 @@ const {useState, useEffect, useCallback} = React;
 
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycby5buK5L2kHxwZuxMs6aQ6oKpBk9SlVtGjMOQvKYfS_XfVvcHrdNhA3OOa3AQy3YH5j7w/exec";
 async function fetchRoster() { if (!SHEETS_URL) return []; try { const r = await fetch(SHEETS_URL); const d = await r.json(); return d.participants || []; } catch { return []; } }
-async function saveToSheet(action, participant) { if (!SHEETS_URL) return false; try { await fetch(SHEETS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action, participant }) }); return true; } catch { return false; } }
+async function saveToSheet(action, participant) { if (!SHEETS_URL) return false; try { await fetch(SHEETS_URL, { method: "POST", { method: "POST", mode: "no-cors", body: JSON.stringify({ action, participant }) }); return true; } catch { return false; } }
 const EVENT_DATE = new Date("2026-10-08T14:00:00-04:00");
 const SCHEDULE = [
   { day: "Thursday", date: "Oct 8", course: "Manistee National", firstTee: "2:00 PM", format: "2-Man Scramble", points: 4, rules: "2v2: Both players tee off, pick the best ball, and both play from that spot. Repeat until holed out." },
