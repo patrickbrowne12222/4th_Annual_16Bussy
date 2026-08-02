@@ -54,12 +54,18 @@ const PAST_TRIPS = [
 ];
 const TEAMS = {
   patricks: { name: "Patrick\u2019s Bussies", color: "#c9b97a", members: ["Patrick Browne", "Harrison Martin", "Jason Chang", "Jack Fischer"] },
-  eriks: { name: "Erik\u2019s Bussies", color: "#7da68a", members: ["Erik Smith", "Austin McBee", "Jake Kaufman", "Jimmy Suszka", "Ethan Axelrad"] },
-  freeAgents: { name: "Free agents", color: "rgba(255,255,255,0.4)", members: ["Patrick Halpin", "Adam Bieler", "Brad Burton", "Andrew Badea", "Spencer Lebsack", "Dylan Conway"], slots: 1 },
+  eriks: { name: "Erik\u2019s Bussies", color: "#7da68a", members: ["Erik Smith", "Austin McBee", "Jake Kaufman", "Jimmy Suszka"] },
+  freeAgents: { name: "Free agents", color: "rgba(255,255,255,0.4)", members: ["Quinn Denvir", "Beech", "Patrick Halpin", "Adam Bieler", "Brad Burton", "Andrew Badea", "Spencer Lebsack", "Dylan Conway"], slots: 0 },
+};
 };
 const STUDS = [{ name: "Patrick Browne", record: "11-4", pct: "73%" }, { name: "Jack Fischer", record: "7.5-3.5", pct: "68%" }, { name: "Jason Chang", record: "7-4", pct: "64%" }];
 const DUDS = [{ name: "Jake Kaufman", record: "0.5-4.5", pct: "10%" }, { name: "Moose", record: "3-8", pct: "27%" }, { name: "Charlie \u201CSurvivor\u201D Krause", record: "2.5-5.5", pct: "31%" }];
-const RENTAL_CARS = [{ driver: "Patrick", passengers: ["Adam Bieler"], openSpots: 3 }];
+const RENTAL_CARS =
+  { driver: "Patrick Browne", passengers: ["Adam Bieler", "Brad Burton", "Dylan Conway"], openSpots: 0 },
+  { driver: "Erik Smith", passengers: ["Patrick Halpin", "Jimmy Suszka", "Quinn Denvir"], openSpots: 0 },
+  { driver: "Andrew Badea", passengers: ["Harrison Martin", "Jake Kaufman", "Jason Chang"], openSpots: 0 },
+  { driver: "Jack Fischer", passengers: ["Beech", "Spencer Lebsack", "Austin McBee"], openSpots: 0 },
+];
 function getWinCounts() { const c = {}; PAST_TRIPS.forEach(t => t.champions.forEach(n => { c[n] = (c[n] || 0) + 1; })); return c; }
 const WIN_COUNTS = getWinCounts();
 const NAV_ITEMS = ["Schedule", "Courses", "Teams", "Leaderboard", "Details", "Travel", "Roster", "Stats", "History"];
