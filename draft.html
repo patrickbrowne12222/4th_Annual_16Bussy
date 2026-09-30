@@ -424,7 +424,7 @@ function Rosters({ state, onClock }) {
   const gapText = gap === 0 ? "Dead even on total handicap" : `${TEAMS[gap > 0 ? "patricks" : "eriks"].name} are ${Math.abs(gap)} strokes lower`;
   return <div className="rosters">
     <div className="gap-card">
-      <div className="gap-line"><strong>{gapText}</strong><span>Lower total means the stronger side on paper</span></div>
+      <div className="gap-line"><strong>{gapText}</strong><span></span></div>
       <div className="gap-bar" aria-hidden="true">
         <div style={{ width: `${(pb / (pb + eb)) * 100}%`, background: TEAMS.patricks.color }} />
         <div style={{ width: `${(eb / (pb + eb)) * 100}%`, background: TEAMS.eriks.color }} />
