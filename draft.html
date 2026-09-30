@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Draft Room — 16Bussy Invitational</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#1c2318;--panel:rgba(42,51,37,.55);--panel-2:rgba(0,0,0,.16);--cream:#f5f0e4;--muted:rgba(245,240,228,.55);--faint:rgba(245,240,228,.3);--line:rgba(255,255,255,.07);--gold:#c9b97a;--green:#7da68a;--red:#d08a7c;--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',-apple-system,sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:linear-gradient(180deg,#1c2318 0%,#212a1d 55%,#1a2016 100%);background-color:var(--bg);color:var(--cream);-webkit-font-smoothing:antialiased;min-height:100vh}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 60px}
+.loading{padding:120px 20px;text-align:center;color:var(--muted);font-family:var(--serif);font-style:italic;font-size:20px}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:40;background:rgba(28,35,24,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--serif);color:var(--gold);text-decoration:none;font-size:16px;padding-right:14px;border-right:1px solid var(--line)}
+.top-title{font-family:var(--serif);font-size:17px}
+.top-title span{font-family:var(--sans);font-size:12px;color:var(--faint);margin-left:10px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.conn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.conn.live i{background:#8fc79b;box-shadow:0 0 0 3px rgba(143,199,155,.18)}
+.conn.offline i{background:var(--red)}
+.conn.local i{background:var(--gold)}
+.seat-chip{background:rgba(201,185,122,.08);border:1px solid rgba(201,185,122,.25);color:var(--gold);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600}
+
+/* on-the-clock banner */
+.banner{margin:22px 0 18px;padding:26px 30px;border-radius:14px;background:var(--panel);border:1px solid var(--line);display:flex;gap:24px;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.banner.live{border-color:color-mix(in srgb,var(--team) 45%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--team) 16%,transparent),rgba(42,51,37,.5) 60%)}
+.banner-kicker{font-size:13px;color:var(--muted);margin-bottom:6px}
+.banner-title{font-family:var(--serif);font-size:clamp(28px,4.4vw,46px);line-height:1.05;font-weight:700}
+.banner.live .banner-title{color:var(--team)}
+.banner-sub{margin-top:10px;font-size:14px;color:var(--muted);max-width:62ch;line-height:1.5}
+.banner-sub b{color:var(--cream);font-weight:600}
+.clock{text-align:right;flex-shrink:0}
+.clock-digits{font-family:var(--serif);font-size:clamp(44px,7vw,78px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--cream)}
+.clock-digits.warn{color:var(--gold)}
+.clock-digits.over{color:var(--red)}
+.clock-label{font-size:12px;color:var(--muted);margin-top:6px}
+.order-strip{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:360px}
+.order-strip span{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--team) 16%,transparent);color:var(--team);border:1px solid color-mix(in srgb,var(--team) 35%,transparent)}
+
+/* big board */
+.board{margin-bottom:18px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 10px}
+.sec-head h2{font-family:var(--serif);font-size:22px;font-weight:700}
+.sec-head span{font-size:12px;color:var(--faint)}
+.board-scroll{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:rgba(20,26,18,.5)}
+.board-grid{display:grid;grid-template-columns:170px repeat(4,minmax(150px,1fr));min-width:780px}
+.bg-corner,.bg-round{padding:10px 14px;font-size:12px;color:var(--faint);border-bottom:1px solid var(--line)}
+.bg-round{border-left:1px solid var(--line)}
+.bg-team{padding:16px 14px;font-family:var(--serif);font-size:17px;font-weight:700;color:var(--team);display:flex;align-items:center;border-left:4px solid var(--team)}
+.bg-team + .bg-cell,.bg-cell{border-left:1px solid var(--line)}
+.board-grid > :nth-child(n+11){border-top:1px solid var(--line)}
+.bg-cell{position:relative;min-height:92px;padding:12px 14px 12px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
+.bg-num{position:absolute;top:9px;right:12px;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.bg-cell.filled{background:color-mix(in srgb,var(--team) 11%,transparent)}
+.bg-cell.filled .bg-num{color:var(--team)}
+.bg-name{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.15}
+.bg-hcp{font-size:12px;color:var(--muted)}
+.bg-empty{font-size:13px;color:rgba(245,240,228,.18)}
+.bg-cell.onclock{box-shadow:inset 0 0 0 2px var(--team);background:color-mix(in srgb,var(--team) 7%,transparent)}
+.bg-cell.onclock .bg-wait{font-size:13px;font-weight:600;color:var(--team)}
+@media (prefers-reduced-motion:no-preference){.bg-cell.onclock{animation:pulse 1.8s ease-in-out infinite}}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--team) 35%,transparent)}}
+
+/* lower grid */
+.lower{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
+.rosters{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gap-card{grid-column:1/-1;padding:16px 20px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.gap-line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.gap-line strong{font-family:var(--serif);font-size:18px}
+.gap-line span{font-size:12px;color:var(--faint)}
+.gap-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--panel-2)}
+.gap-bar div{transition:width .5s ease}
+.roster{border-radius:14px;background:var(--panel);border:1px solid color-mix(in srgb,var(--team) 22%,transparent);padding:20px}
+.roster.onclock{border-color:var(--team)}
+.roster-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+.roster-name{font-family:var(--serif);font-size:21px;font-weight:700;color:var(--team)}
+.roster-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.roster-total{text-align:right}
+.roster-total b{display:block;font-family:var(--serif);font-size:44px;line-height:1;color:var(--team);font-variant-numeric:tabular-nums}
+.roster-total span{font-size:11px;color:var(--faint)}
+.roster ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.roster li{display:grid;grid-template-columns:1fr auto 30px;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;background:var(--panel-2);font-size:14px}
+.roster li .tag{font-size:11px;color:var(--faint)}
+.roster li.drafted{background:color-mix(in srgb,var(--team) 12%,transparent)}
+.roster li.drafted .tag{color:var(--team)}
+.roster li .h{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.roster li.open{background:transparent;border:1px dashed rgba(255,255,255,.1);color:var(--faint);font-size:13px}
+.roster li.open.now{border-color:var(--team);color:var(--team)}
+
+.side{display:flex;flex-direction:column;gap:14px}
+.pool{border-radius:14px;background:var(--panel);border:1px solid var(--line);padding:18px}
+.pool ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.pool li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--panel-2);min-height:46px}
+.pool-hcp{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--gold);text-align:center;font-variant-numeric:tabular-nums}
+.pool-name{font-size:14px;font-weight:600}
+.pool li.taken{opacity:.45}
+.pool li.taken .pool-name{text-decoration:line-through;text-decoration-color:rgba(245,240,228,.4)}
+.pool-tag{font-size:11px;color:var(--team);white-space:nowrap}
+.pool-note{font-size:12px;color:var(--faint);margin-top:12px;line-height:1.5}
+.btn{border-radius:7px;padding:8px 14px;font-size:13px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-primary{background:var(--gold);color:#1c2318;border-color:var(--gold)}
+.btn-draft{background:var(--gold);color:#1c2318;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700}
+.btn-danger{background:rgba(208,138,124,.15);border-color:var(--red);color:var(--red)}
+
+.commish{border-radius:14px;padding:18px;border:1px dashed rgba(201,185,122,.35);background:rgba(201,185,122,.04)}
+.commish h2{font-family:var(--serif);font-size:18px;margin-bottom:12px}
+.commish label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.commish select{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:8px 10px;font-size:14px}
+.commish select option{background:#1c2318}
+.commish-actions{display:flex;flex-wrap:wrap;gap:8px}
+.commish-note{font-size:12px;color:var(--faint);margin-top:12px;line-height:1.5}
+
+/* modals + overlay */
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(10,14,9,.72);display:grid;place-items:center;padding:20px}
+.modal{width:100%;max-width:440px;background:#232b1f;border:1px solid rgba(201,185,122,.2);border-radius:16px;padding:26px}
+.modal h3{font-family:var(--serif);font-size:24px;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--muted);line-height:1.55}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.seats{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.seat{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
+.seat.sel{border-color:var(--gold);background:rgba(201,185,122,.08)}
+.seat b{display:block;font-size:14px}
+.seat small{font-size:12px;color:var(--faint)}
+.seat i{width:14px;height:14px;border-radius:50%;margin-top:3px;flex-shrink:0;border:2px solid var(--faint)}
+.seat.sel i{border-color:var(--gold);background:radial-gradient(var(--gold) 45%,transparent 50%)}
+.code-input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);font-size:15px;margin-top:4px}
+.err{color:var(--red);font-size:13px;margin-top:10px}
+.local-note{font-size:12px;color:var(--faint);margin-top:12px;line-height:1.5}
+
+.overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;cursor:pointer;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--team) 30%,#1c2318) 0%,rgba(16,20,14,.96) 70%)}
+.ov-inner{text-align:center;padding:20px}
+.ov-kicker{font-size:15px;color:var(--muted)}
+.ov-team{font-family:var(--serif);font-style:italic;font-size:clamp(22px,3.5vw,32px);color:var(--team);margin-top:6px}
+.ov-name{font-family:var(--serif);font-size:clamp(48px,10vw,120px);line-height:1;margin:14px 0 12px;font-weight:700}
+.ov-hcp{font-size:18px;color:var(--cream)}
+.ov-hint{font-size:12px;color:var(--faint);margin-top:28px}
+@media (prefers-reduced-motion:no-preference){.ov-name{animation:land .7s cubic-bezier(.2,.9,.25,1.2) both .15s}.ov-team,.ov-hcp{animation:fade .5s both .05s}}
+@keyframes land{from{opacity:0;transform:scale(.8) translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:95;background:#2f2622;border:1px solid var(--red);color:var(--cream);padding:12px 18px;border-radius:10px;font-size:14px;max-width:min(92vw,520px)}
+
+@media (max-width:1000px){.lower{grid-template-columns:1fr}.side{order:-1}}
+@media (max-width:680px){.rosters{grid-template-columns:1fr}.banner{flex-direction:column;align-items:flex-start;padding:22px}.clock{text-align:left}.order-strip{justify-content:flex-start}.top-title span{display:none}.board-grid{grid-template-columns:112px repeat(4,minmax(128px,1fr));min-width:624px}.bg-team{font-size:15px}.order-strip span{width:30px;height:30px;font-size:11px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ================= SETTINGS =================
+// Paste your Apps Script web app URL (ends in /exec) between the quotes.
+// Leave it blank to run in local mode: picks save to this browser only (good for testing or a single screen-share).
+const DRAFT_API_URL = "https://script.google.com/macros/s/AKfycbyUeLJ5UN0fOD1ZfyFiwMz1fBz1oQ9VoSksfTSwomuL1QMvwLw9mDWvnafuOn1NR0IM/exec";
+const DRAFT_DATE_LABEL = "Monday, October 5";
+const POLL_MS = 2500;
+// ============================================
+
+// ===== SHARED DRAFT LOGIC (identical in draft.html and the Apps Script) =====
+const TEAM_KEYS = ["patricks", "eriks"];
+const TEAM_NAMES = { patricks: "Patrick\u2019s Bussies", eriks: "Erik\u2019s Bussies" };
+const FA_POOL = [
+  { name: "Spencer Lebsack", hcp: 9 },
+  { name: "Dylan Conway", hcp: 7 },
+  { name: "Michael Beecher", hcp: 7 },
+  { name: "Brad Burton", hcp: 13 },
+  { name: "Andrew Badea", hcp: 13 },
+  { name: "Quinn Denvir", hcp: 19 },
+  { name: "Adam Bieler", hcp: 19 },
+  { name: "Patrick Halpin", hcp: 34 },
+];
+const TOTAL_ROUNDS = 4;
+const INITIAL_STATE = { status: "setup", firstTeam: "eriks", format: "snake", timerSec: 120, picks: [], clockStart: null, pausedElapsed: 0, version: 0 };
+
+function otherTeam(t) { return t === "patricks" ? "eriks" : "patricks"; }
+
+function draftOrder(firstTeam, format) {
+  const order = [];
+  for (let r = 0; r < TOTAL_ROUNDS; r++) {
+    const flip = format === "snake" && r % 2 === 1;
+    const pair = flip ? [otherTeam(firstTeam), firstTeam] : [firstTeam, otherTeam(firstTeam)];
+    pair.forEach(team => order.push({ pick: order.length + 1, round: r + 1, team }));
+  }
+  return order;
+}
+
+function applyAction(state, a, now) {
+  const s = JSON.parse(JSON.stringify(state));
+  const isCommish = a.role === "commish";
+  const order = draftOrder(s.firstTeam, s.format);
+  const commishOnly = "Only the commissioner can do that.";
+  switch (a.action) {
+    case "configure":
+      if (!isCommish) return { error: commishOnly };
+      if (s.status !== "setup") return { error: "Settings lock once the draft starts. Reset the draft to change them." };
+      if (TEAM_KEYS.indexOf(a.firstTeam) >= 0) s.firstTeam = a.firstTeam;
+      if (a.format === "snake" || a.format === "linear") s.format = a.format;
+      if (a.timerSec !== undefined && a.timerSec !== "") s.timerSec = Math.max(0, parseInt(a.timerSec, 10) || 0);
+      break;
+    case "start":
+      if (!isCommish) return { error: commishOnly };
+      if (s.status !== "setup") return { error: "The draft has already started." };
+      s.status = "live"; s.picks = []; s.clockStart = now; s.pausedElapsed = 0;
+      break;
+    case "pick": {
+      if (s.status === "paused") return { error: "The draft is paused. Picks reopen when the commissioner resumes." };
+      if (s.status !== "live") return { error: "The draft isn't live yet." };
+      const slot = order[s.picks.length];
+      if (!slot) return { error: "All eight picks are in." };
+      if (!isCommish && a.role !== slot.team) return { error: "Not your pick. " + TEAM_NAMES[slot.team] + " are on the clock." };
+      if (!FA_POOL.some(p => p.name === a.player)) return { error: "That player isn't in the free-agent pool." };
+      if (s.picks.some(p => p.player === a.player)) return { error: a.player + " was already drafted." };
+      s.picks.push({ pick: slot.pick, round: slot.round, team: slot.team, player: a.player, ts: now, by: a.role });
+      s.clockStart = now; s.pausedElapsed = 0;
+      if (s.picks.length === order.length) s.status = "complete";
+      break;
+    }
+    case "pause":
+      if (!isCommish) return { error: commishOnly };
+      if (s.status !== "live") return { error: "The draft isn't live." };
+      s.status = "paused"; s.pausedElapsed = now - s.clockStart;
+      break;
+    case "resume":
+      if (!isCommish) return { error: commishOnly };
+      if (s.status !== "paused") return { error: "The draft isn't paused." };
+      s.status = "live"; s.clockStart = now - (s.pausedElapsed || 0);
+      break;
+    case "undo":
+      if (!isCommish) return { error: commishOnly };
+      if (!s.picks.length) return { error: "There are no picks to undo." };
+      s.picks.pop();
+      if (s.status === "complete") s.status = "live";
+      s.clockStart = now; s.pausedElapsed = 0;
+      break;
+    case "reset":
+      if (!isCommish) return { error: commishOnly };
+      s.status = "setup"; s.picks = []; s.clockStart = null; s.pausedElapsed = 0;
+      break;
+    default:
+      return { error: "Unknown action." };
+  }
+  s.version = (s.version || 0) + 1;
+  return { state: s };
+}
+// ===== END SHARED LOGIC =====
+
+
+const REMOTE = !!DRAFT_API_URL;
+const LOCAL_KEY = "16b-draft-state";
+const SEAT_KEY = "16b-draft-seat";
+
+const TEAMS = {
+  patricks: { name: TEAM_NAMES.patricks, short: "PB", color: "#c9b97a", keepers: [{ name: "Patrick Browne", hcp: 4 }, { name: "Nick Sampson", hcp: 13 }, { name: "Jason Chang", hcp: 7 }, { name: "Jack Fischer", hcp: 3 }] },
+  eriks: { name: TEAM_NAMES.eriks, short: "EB", color: "#7da68a", keepers: [{ name: "Erik Smith", hcp: 11 }, { name: "Austin McBee", hcp: 16 }, { name: "Jake Kaufman", hcp: 8 }, { name: "Jimmy Suszka", hcp: 9 }] },
+};
+const SEATS = [
+  { role: "spectator", label: "Watching", desc: "Follow along live. No picks." },
+  { role: "patricks", label: "Patrick\u2019s Bussies captain", desc: "Makes picks for PB." },
+  { role: "eriks", label: "Erik\u2019s Bussies captain", desc: "Makes picks for EB." },
+  { role: "commish", label: "Commissioner", desc: "Starts, pauses, and undoes picks." },
+];
+const seatLabel = r => (SEATS.find(s => s.role === r) || SEATS[0]).label;
+const hcpOf = n => (FA_POOL.find(p => p.name === n) || { hcp: 0 }).hcp;
+const fmtClock = sec => { const t = Math.max(0, Math.ceil(sec)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+
+function readLocal() { try { const s = JSON.parse(localStorage.getItem(LOCAL_KEY)); if (s && s.picks) return s; } catch {} return JSON.parse(JSON.stringify(INITIAL_STATE)); }
+function writeLocal(s) { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(s)); } catch {} }
+async function callApi(params) { const r = await fetch(`${DRAFT_API_URL}?${new URLSearchParams({ ...params, t: Date.now() })}`); return r.json(); }
+
+function teamTotals(state) {
+  const out = {};
+  TEAM_KEYS.forEach(t => {
+    const drafted = state.picks.filter(p => p.team === t).map(p => ({ name: p.player, hcp: hcpOf(p.player), pick: p.pick }));
+    const players = [...TEAMS[t].keepers, ...drafted];
+    const total = players.reduce((a, p) => a + p.hcp, 0);
+    out[t] = { drafted, players, total, avg: total / players.length };
+  });
+  return out;
+}
+
+function useNow(ms) { const [n, setN] = useState(Date.now()); useEffect(() => { const id = setInterval(() => setN(Date.now()), ms); return () => clearInterval(id); }, [ms]); return n; }
+
+function useDraft(seat) {
+  const [state, setState] = useState(null);
+  const [offset, setOffset] = useState(0);
+  const [conn, setConn] = useState(REMOTE ? "connecting" : "local");
+  const ver = useRef(-1);
+  const accept = useCallback(res => {
+    if (!res || !res.state) return;
+    if (res.serverNow) setOffset(res.serverNow - Date.now());
+    if (res.state.version !== ver.current) { ver.current = res.state.version; setState(res.state); }
+  }, []);
+  useEffect(() => {
+    if (!REMOTE) {
+      const load = () => { const s = readLocal(); ver.current = s.version; setState(s); };
+      load();
+      const onStorage = e => { if (e.key === LOCAL_KEY) load(); };
+      window.addEventListener("storage", onStorage);
+      return () => window.removeEventListener("storage", onStorage);
+    }
+    let alive = true, timer;
+    const tick = async () => {
+      try { const j = await callApi({ action: "state" }); if (!alive) return; accept(j); setConn("live"); }
+      catch { if (alive) setConn("offline"); }
+      if (alive) timer = setTimeout(tick, document.hidden ? POLL_MS * 4 : POLL_MS);
+    };
+    tick();
+    return () => { alive = false; clearTimeout(timer); };
+  }, [accept]);
+  const act = useCallback(async (action, extra = {}) => {
+    const payload = { action, role: (seat && seat.role) || "spectator", code: (seat && seat.code) || "", ...extra };
+    if (!REMOTE) {
+      const res = applyAction(readLocal(), payload, Date.now());
+      if (res.error) return { ok: false, error: res.error };
+      writeLocal(res.state); ver.current = res.state.version; setState(res.state);
+      return { ok: true };
+    }
+    try { const j = await callApi(payload); accept(j); return j; }
+    catch { return { ok: false, error: "Couldn't reach the draft server. Check your connection and try again." }; }
+  }, [seat, accept]);
+  return { state, offset, conn, act };
+}
+
+function TopBar({ conn, role, onSeat }) {
+  const connText = { live: "Live", local: "Local mode", offline: "Reconnecting", connecting: "Connecting" }[conn];
+  return <header className="top"><div className="top-in">
+    <a className="brand" href="/">16B</a>
+    <div className="top-title">Free agent draft<span>{DRAFT_DATE_LABEL}</span></div>
+    <div className="top-right">
+      <div className={`conn ${conn}`}><i />{connText}</div>
+      <button className="seat-chip" onClick={onSeat}>{seatLabel(role)}</button>
+    </div>
+  </div></header>;
+}
+
+function Banner({ state, order, onClock, now, offset }) {
+  const totals = teamTotals(state);
+  if (state.status === "setup") {
+    return <section className="banner">
+      <div>
+        <p className="banner-kicker">Draft opens {DRAFT_DATE_LABEL}</p>
+        <h1 className="banner-title">Eight free agents, four picks each</h1>
+        <p className="banner-sub"><b>{TEAMS[state.firstTeam].name}</b> pick first, {state.format === "snake" ? "snake order" : "alternating every pick"}. {state.timerSec ? <>Each pick gets <b>{fmtClock(state.timerSec)}</b> on the clock.</> : "No pick clock."}</p>
+      </div>
+      <div className="order-strip" aria-label="Pick order">{order.map(o => <span key={o.pick} style={{ "--team": TEAMS[o.team].color }} title={`Pick ${o.pick}: ${TEAMS[o.team].name}`}>{TEAMS[o.team].short}</span>)}</div>
+    </section>;
+  }
+  if (state.status === "complete") {
+    const lead = totals.patricks.total === totals.eriks.total ? null : (totals.patricks.total < totals.eriks.total ? "patricks" : "eriks");
+    return <section className="banner">
+      <div>
+        <p className="banner-kicker">Draft complete</p>
+        <h1 className="banner-title">The rosters are set</h1>
+        <p className="banner-sub">Final team handicaps: <b>{TEAMS.patricks.name} {totals.patricks.total}</b>, <b>{TEAMS.eriks.name} {totals.eriks.total}</b>. {lead ? `${TEAMS[lead].name} are ${Math.abs(totals.patricks.total - totals.eriks.total)} strokes lower on paper.` : "Dead even on paper."}</p>
+      </div>
+    </section>;
+  }
+  const team = TEAMS[onClock.team];
+  const elapsed = (state.status === "paused" ? state.pausedElapsed : (now + offset - state.clockStart)) / 1000;
+  const remaining = state.timerSec - elapsed;
+  const next = order[state.picks.length + 1];
+  const last = state.picks[state.picks.length - 1];
+  const cls = state.timerSec ? (remaining <= 0 ? "over" : remaining <= 15 ? "warn" : "") : "";
+  return <section className="banner live" style={{ "--team": team.color }}>
+    <div>
+      <p className="banner-kicker">Pick {onClock.pick} of 8, round {onClock.round}{state.status === "paused" ? ", paused" : ""}</p>
+      <h1 className="banner-title">{team.name} are on the clock</h1>
+      <p className="banner-sub">
+        {next ? <>Up next: <b>{TEAMS[next.team].name}</b>{next.team === onClock.team ? " again" : ""}. </> : "Last pick of the draft. "}
+        {last ? <>Last pick: <b>{last.player}</b> to {TEAMS[last.team].short}.</> : null}
+      </p>
+    </div>
+    <div className="clock">
+      <div className={`clock-digits ${cls}`}>{state.timerSec ? (remaining <= 0 ? `+${fmtClock(-remaining)}` : fmtClock(remaining)) : fmtClock(elapsed)}</div>
+      <div className="clock-label">{state.status === "paused" ? "Clock paused" : state.timerSec ? (remaining <= 0 ? "Over time" : "Left on the clock") : "Time on the clock"}</div>
+    </div>
+  </section>;
+}
+
+function BigBoard({ state, order, onClock }) {
+  const rows = [state.firstTeam, otherTeam(state.firstTeam)];
+  const rounds = Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1);
+  return <section className="board">
+    <div className="sec-head"><h2>Big board</h2><span>{state.format === "snake" ? "Snake order" : "Alternating order"}</span></div>
+    <div className="board-scroll"><div className="board-grid">
+      <div className="bg-corner">Team</div>
+      {rounds.map(r => <div key={r} className="bg-round">Round {r}</div>)}
+      {rows.map(t => <React.Fragment key={t}>
+        <div className="bg-team" style={{ "--team": TEAMS[t].color }}>{TEAMS[t].name}</div>
+        {rounds.map(r => {
+          const slot = order.find(o => o.team === t && o.round === r);
+          const pick = state.picks.find(p => p.pick === slot.pick);
+          const live = onClock && onClock.pick === slot.pick;
+          return <div key={r} className={`bg-cell ${pick ? "filled" : ""} ${live ? "onclock" : ""}`} style={{ "--team": TEAMS[t].color }}>
+            <span className="bg-num">Pick {slot.pick}</span>
+            {pick ? <><span className="bg-name">{pick.player}</span><span className="bg-hcp">{hcpOf(pick.player)} handicap</span></>
+              : live ? <span className="bg-wait">On the clock</span> : <span className="bg-empty">Open</span>}
+          </div>;
+        })}
+      </React.Fragment>)}
+    </div></div>
+  </section>;
+}
+
+function Rosters({ state, onClock }) {
+  const totals = teamTotals(state);
+  const pb = totals.patricks.total, eb = totals.eriks.total;
+  const gap = eb - pb;
+  const gapText = gap === 0 ? "Dead even on total handicap" : `${TEAMS[gap > 0 ? "patricks" : "eriks"].name} are ${Math.abs(gap)} strokes lower`;
+  return <div className="rosters">
+    <div className="gap-card">
+      <div className="gap-line"><strong>{gapText}</strong><span>Lower total means the stronger side on paper</span></div>
+      <div className="gap-bar" aria-hidden="true">
+        <div style={{ width: `${(pb / (pb + eb)) * 100}%`, background: TEAMS.patricks.color }} />
+        <div style={{ width: `${(eb / (pb + eb)) * 100}%`, background: TEAMS.eriks.color }} />
+      </div>
+    </div>
+    {TEAM_KEYS.map(t => {
+      const d = totals[t];
+      const isNow = onClock && onClock.team === t && state.status !== "complete";
+      const openCount = TOTAL_ROUNDS - d.drafted.length;
+      return <section key={t} className={`roster ${isNow ? "onclock" : ""}`} style={{ "--team": TEAMS[t].color }}>
+        <div className="roster-head">
+          <div><div className="roster-name">{TEAMS[t].name}</div><div className="roster-meta">{d.players.length} of 8 players, {d.avg.toFixed(1)} average</div></div>
+          <div className="roster-total"><b>{d.total}</b><span>total handicap</span></div>
+        </div>
+        <ul>
+          {TEAMS[t].keepers.map((p, i) => <li key={p.name}><span>{p.name}</span><span className="tag">{i === 0 ? "Captain" : "Roster"}</span><span className="h">{p.hcp}</span></li>)}
+          {d.drafted.map(p => <li key={p.name} className="drafted"><span>{p.name}</span><span className="tag">Pick {p.pick}</span><span className="h">{p.hcp}</span></li>)}
+          {Array.from({ length: openCount }, (_, i) => <li key={`o${i}`} className={`open ${isNow && i === 0 ? "now" : ""}`}><span>{isNow && i === 0 ? "Picking now" : "Open slot"}</span><span /><span /></li>)}
+        </ul>
+      </section>;
+    })}
+  </div>;
+}
+
+function Pool({ state, role, canPick, onDraft }) {
+  const taken = {}; state.picks.forEach(p => { taken[p.player] = p; });
+  const sorted = [...FA_POOL].sort((a, b) => a.hcp - b.hcp || a.name.localeCompare(b.name));
+  const left = sorted.filter(p => !taken[p.name]).length;
+  let note = null;
+  if (state.status === "setup") note = "Draft buttons appear when the commissioner starts the draft.";
+  else if (state.status === "live" && !canPick) note = role === "spectator" ? "You're watching. Captains make picks from their own seat." : "Your draft buttons unlock when you're on the clock.";
+  return <section className="pool">
+    <div className="sec-head"><h2>Free agents</h2><span>{left} available</span></div>
+    <ul>{sorted.map(p => {
+      const tk = taken[p.name];
+      return <li key={p.name} className={tk ? "taken" : ""}>
+        <span className="pool-hcp" title="Handicap">{p.hcp}</span>
+        <span className="pool-name">{p.name}</span>
+        {tk ? <span className="pool-tag" style={{ "--team": TEAMS[tk.team].color }}>{TEAMS[tk.team].short}, pick {tk.pick}</span>
+          : canPick ? <button className="btn-draft" onClick={() => onDraft(p)}>Draft</button> : <span />}
+      </li>;
+    })}</ul>
+    {note && <p className="pool-note">{note}</p>}
+  </section>;
+}
+
+function CommishPanel({ state, run }) {
+  const [armReset, setArmReset] = useState(false);
+  if (state.status === "setup") {
+    return <section className="commish">
+      <h2>Commissioner controls</h2>
+      <label>First pick
+        <select value={state.firstTeam} onChange={e => run("configure", { firstTeam: e.target.value })}>
+          {TEAM_KEYS.map(t => <option key={t} value={t}>{TEAMS[t].name}</option>)}
+        </select>
+      </label>
+      <label>Pick order
+        <select value={state.format} onChange={e => run("configure", { format: e.target.value })}>
+          <option value="snake">Snake (A, B, B, A...)</option>
+          <option value="linear">Alternating (A, B, A, B...)</option>
+        </select>
+      </label>
+      <label>Pick clock
+        <select value={String(state.timerSec)} onChange={e => run("configure", { timerSec: e.target.value })}>
+          {[0, 60, 90, 120, 180, 300].map(s => <option key={s} value={String(s)}>{s ? fmtClock(s) : "Off"}</option>)}
+        </select>
+      </label>
+      <div className="commish-actions"><button className="btn btn-primary" onClick={() => run("start")}>Start draft</button></div>
+    </section>;
+  }
+  return <section className="commish">
+    <h2>Commissioner controls</h2>
+    <div className="commish-actions">
+      {state.status === "live" && <button className="btn" onClick={() => run("pause")}>Pause</button>}
+      {state.status === "paused" && <button className="btn btn-primary" onClick={() => run("resume")}>Resume</button>}
+      <button className="btn" disabled={!state.picks.length} onClick={() => run("undo")}>Undo last pick</button>
+      {armReset
+        ? <><button className="btn btn-danger" onClick={async () => { await run("reset"); setArmReset(false); }}>Confirm reset</button><button className="btn" onClick={() => setArmReset(false)}>Cancel</button></>
+        : <button className="btn" onClick={() => setArmReset(true)}>Reset draft</button>}
+    </div>
+    <p className="commish-note">You can draft for whichever team is on the clock if a captain drops off the call.</p>
+  </section>;
+}
+
+function SeatPicker({ current, onDone, onCancel }) {
+  const [role, setRole] = useState((current && current.role) || "spectator");
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const needsCode = REMOTE && role !== "spectator";
+  const submit = async () => {
+    setErr("");
+    if (needsCode) {
+      if (!code.trim()) { setErr("Enter the code for this seat."); return; }
+      setBusy(true);
+      try { const j = await callApi({ action: "auth", role, code: code.trim() }); setBusy(false); if (!j.ok) { setErr(j.error || "That code doesn't match this seat."); return; } }
+      catch { setBusy(false); setErr("Couldn't reach the draft server. Check your connection and try again."); return; }
+    }
+    onDone({ role, code: code.trim() });
+  };
+  return <div className="scrim"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="seat-h">
+    <h3 id="seat-h">Take your seat</h3>
+    <p>Captains and the commissioner get a code from Patrick.</p>
+    <div className="seats">{SEATS.map(s => <button key={s.role} className={`seat ${role === s.role ? "sel" : ""}`} onClick={() => setRole(s.role)} aria-pressed={role === s.role}><i /><span><b>{s.label}</b><small>{s.desc}</small></span></button>)}</div>
+    {needsCode && <input className="code-input" type="password" autoComplete="off" placeholder="Seat code" value={code} onChange={e => setCode(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }} autoFocus />}
+    {err && <p className="err">{err}</p>}
+    {!REMOTE && <p className="local-note">Local mode: picks save in this browser only. Other devices won't see them until the draft server URL is added.</p>}
+    <div className="modal-actions">
+      {onCancel && <button className="btn" onClick={onCancel}>Cancel</button>}
+      <button className="btn btn-primary" disabled={busy} onClick={submit}>{busy ? "Checking..." : "Enter draft room"}</button>
+    </div>
+  </div></div>;
+}
+
+function ConfirmPick({ player, onClock, state, onCancel, onConfirm }) {
+  const [busy, setBusy] = useState(false);
+  const team = TEAMS[onClock.team];
+  const before = teamTotals(state)[onClock.team].total;
+  return <div className="scrim" onClick={onCancel}><div className="modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+    <h3>Draft {player.name}?</h3>
+    <p>Pick {onClock.pick} for {team.name}. Handicap {player.hcp} takes the team total from {before} to {before + player.hcp}.</p>
+    <div className="modal-actions">
+      <button className="btn" onClick={onCancel}>Cancel</button>
+      <button className="btn btn-primary" disabled={busy} onClick={async () => { setBusy(true); await onConfirm(); }}>{busy ? "Drafting..." : `Draft ${player.name.split(" ")[0]}`}</button>
+    </div>
+  </div></div>;
+}
+
+function PickOverlay({ pick, onClose }) {
+  const team = TEAMS[pick.team];
+  return <div className="overlay" style={{ "--team": team.color }} onClick={onClose} role="status" aria-live="assertive">
+    <div className="ov-inner">
+      <p className="ov-kicker">Pick {pick.pick}, round {pick.round}</p>
+      <p className="ov-team">{team.name} select</p>
+      <h2 className="ov-name">{pick.player}</h2>
+      <p className="ov-hcp">{hcpOf(pick.player)} handicap</p>
+      <p className="ov-hint">Click anywhere to close</p>
+    </div>
+  </div>;
+}
+
+function App() {
+  const [seat, setSeat] = useState(() => { try { return JSON.parse(localStorage.getItem(SEAT_KEY)); } catch { return null; } });
+  const [seatOpen, setSeatOpen] = useState(!seat);
+  const { state, offset, conn, act } = useDraft(seat);
+  const now = useNow(250);
+  const [confirm, setConfirm] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [overlay, setOverlay] = useState(null);
+  const prevCount = useRef(null);
+
+  useEffect(() => {
+    if (!state) return;
+    const n = state.picks.length;
+    if (prevCount.current !== null && n > prevCount.current) setOverlay(state.picks[n - 1]);
+    prevCount.current = n;
+  }, [state]);
+  useEffect(() => { if (!overlay) return; const id = setTimeout(() => setOverlay(null), 5000); return () => clearTimeout(id); }, [overlay]);
+  useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(null), 4500); return () => clearTimeout(id); }, [toast]);
+
+  const run = async (action, extra) => { const r = await act(action, extra); if (r && r.ok === false) setToast(r.error); return r; };
+  const saveSeat = s => { setSeat(s); try { localStorage.setItem(SEAT_KEY, JSON.stringify(s)); } catch {} setSeatOpen(false); };
+
+  if (!state) return <div className="loading">Connecting to the draft room...</div>;
+  const role = (seat && seat.role) || "spectator";
+  const order = draftOrder(state.firstTeam, state.format);
+  const onClock = (state.status === "live" || state.status === "paused") ? order[state.picks.length] : null;
+  const canPick = state.status === "live" && !!onClock && (role === "commish" || role === onClock.team);
+
+  return <>
+    <TopBar conn={conn} role={role} onSeat={() => setSeatOpen(true)} />
+    <main className="wrap">
+      <Banner state={state} order={order} onClock={onClock} now={now} offset={offset} />
+      <BigBoard state={state} order={order} onClock={onClock} />
+      <div className="lower">
+        <Rosters state={state} onClock={onClock} />
+        <div className="side">
+          {role === "commish" && <CommishPanel state={state} run={run} />}
+          <Pool state={state} role={role} canPick={canPick} onDraft={p => setConfirm(p)} />
+        </div>
+      </div>
+    </main>
+    {seatOpen && <SeatPicker current={seat} onDone={saveSeat} onCancel={seat ? () => setSeatOpen(false) : null} />}
+    {confirm && onClock && <ConfirmPick player={confirm} onClock={onClock} state={state} onCancel={() => setConfirm(null)} onConfirm={async () => { await run("pick", { player: confirm.name }); setConfirm(null); }} />}
+    {overlay && <PickOverlay pick={overlay} onClose={() => setOverlay(null)} />}
+    {toast && <div className="toast" role="alert">{toast}</div>}
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
