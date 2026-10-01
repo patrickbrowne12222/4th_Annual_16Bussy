@@ -190,13 +190,10 @@ const INITIAL_STATE = { status: "setup", firstTeam: "eriks", format: "snake", ti
 function otherTeam(t) { return t === "patricks" ? "eriks" : "patricks"; }
 
 function draftOrder(firstTeam, format) {
-  const order = [];
-  for (let r = 0; r < TOTAL_ROUNDS; r++) {
-    const flip = format === "snake" && r % 2 === 1;
-    const pair = flip ? [otherTeam(firstTeam), firstTeam] : [firstTeam, otherTeam(firstTeam)];
-    pair.forEach(team => order.push({ pick: order.length + 1, round: r + 1, team }));
-  }
-  return order;
+  const a = firstTeam, b = otherTeam(firstTeam);
+  // "snake" is the confirmed 16Bussy order: A, B, A, B, B, A, B, A.
+  const seq = format === "linear" ? [a, b, a, b, a, b, a, b] : [a, b, a, b, b, a, b, a];
+  return seq.map((team, i) => ({ pick: i + 1, round: Math.floor(i / 2) + 1, team }));
 }
 
 function applyAction(state, a, now) {
